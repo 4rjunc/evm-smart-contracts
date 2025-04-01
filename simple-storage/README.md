@@ -50,6 +50,9 @@ $ anvil
 ```shell
 $ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
 ```
+```
+forge script script/DeploySimpleStorage.s.sol --rpc-url $RPC_URL --account devWallet --sender 0x8fE6509E8E7954B4848772e989829a958805a2B4 --broadcast -vvvv
+```
 
 ### Cast
 
