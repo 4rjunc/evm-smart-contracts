@@ -17,7 +17,7 @@ contract CreatePool is Script {
     function run() public {
         vm.startBroadcast();
     
-        DogToken token1 = new DogToken("Dog Coin", "DOG", 18, 1_000_000 ether); // One million tokens minted
+        DogToken token1 = new DogToken("AARONE COIN", "ARON", 18, 1_000_000_000 ether); // One billion tokens minted
 
         /*
           Pool: ETH - DOG
