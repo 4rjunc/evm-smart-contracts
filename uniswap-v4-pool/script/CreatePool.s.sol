@@ -81,6 +81,7 @@ contract CreatePool is Script {
         bytes memory hookData = new bytes(0);
         IPositionManager posm = IPositionManager(0x429ba70129df741B2Ca2a85BC3A2a3328e5c09b4);
         PoolModifyLiquidityTest lpRouter = PoolModifyLiquidityTest(0x0C478023803a644c94c4CE1C1e7b9A087e411B0A);
+        IAllowanceTransfer PERMIT2 = IAllowanceTransfer(address(0x000000000022D473030F116dDEE9F6B43aC78BA3));
 
         // range of position
         int24 tickLower = -600; // must be a multiple of tickSpacing
@@ -142,7 +143,8 @@ contract CreatePool is Script {
         );
 
         // 8. Approve the tokens2
-        IERC20(address(token2)).approve(address(posm), type(uint256).max);
+        token2.approve(address(PERMIT2), type(uint256).max);
+        PERMIT2.approve(address(token2), address(posm), type(uint160).max, type(uint48).max);
         //IAllowanceTransfer(address(lpRouter)).approve(address(token2), address(posm), type(uint160).max, type(uint48).max);
 
         IPositionManager(posm).multicall{value: amount0Max}(params);
