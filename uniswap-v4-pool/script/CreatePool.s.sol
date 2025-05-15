@@ -13,13 +13,14 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IPoolManager} from "v4-core/src/interfaces/IPoolManager.sol";
 import {PoolModifyLiquidityTest} from "v4-core/src/test/PoolModifyLiquidityTest.sol";
 
-import {IPoolInitializer_v4} from "v4-periphery/interfaces/IPoolInitializer_v4.sol";
-import {Actions} from "v4-periphery/libraries/Actions.sol";
+import {IPoolInitializer_v4} from "v4-periphery/src/interfaces/IPoolInitializer_v4.sol";
+import {Actions} from "v4-periphery/src/libraries/Actions.sol";
 import {TickMath} from "v4-core/src/libraries/TickMath.sol";
-// import {PositionManager} from "v4-periphery/PositionManager.sol";
-import {IPositionManager} from "v4-periphery/interfaces/IPositionManager.sol";
+//import {PositionManager} from "v4-periphery/PositionManager.sol";
+import {IPositionManager} from "v4-periphery/src/interfaces/IPositionManager.sol";
 
 
+import {IAllowanceTransfer} from "v4-periphery/lib/permit2/src/interfaces/IAllowanceTransfer.sol";
 import {LiquidityAmounts} from "v4-core/test/utils/LiquidityAmounts.sol";
 
 contract CreatePool is Script {
@@ -31,32 +32,32 @@ contract CreatePool is Script {
 
         ////////////////////////////////////////////// CREATE POOL //////////////////////////////////////////////
         // MockToken token0 = new MockToken("Dog Coin", "DOG", 18, 1_000_000_000 ether); // One billion tokens minted
-        MockToken token1 = new MockToken("Cat Coin", "CAT", 18, 1_000_000_000 ether); // One billion tokens minted
+        //MockToken token1 = new MockToken("Cat Coin", "CAT", 18, 1_000_000_000 ether); // One billion tokens minted
 
         // console.log("DOG: ");
         // console.logAddress(address(token0));
-        console.log("CAT: ");
-        console.logAddress(address(token1));
+        //console.log("CAT: ");
+        //console.logAddress(address(token1));
 
         // address DOG = address(0x9470Bda003d4bd767E0ce73bE1C32c30cE37b34F); // DOG
-        address CAT = address(token1); // CAT
+        //address CAT = address(token1); // CAT
         address hook = address(0);
         uint24 swapFee = 4000; // 0.40%
         int24 tickSpacing = 10; // tickSpacing is the granularity of the pool. Lower values are more precise but may be more expensive to trade on
 
         uint256 token0Amount = 1e15;
-        uint256 token1Amount = 100e18;
+        uint256 token1Amount = 2_000_000e18;
 
-        PoolKey memory pool = PoolKey({
-          currency0: Currency.wrap(address(0)), // ETH
-          currency1: Currency.wrap(CAT), // CAT Token
-          fee: swapFee,
-          tickSpacing: tickSpacing,
-          hooks: IHooks(hook)
-        });
-
+        // PoolKey memory pool = PoolKey({
+        //   currency0: Currency.wrap(address(0)), // ETH
+        //   currency1: Currency.wrap(CAT), // CAT Token
+        //   fee: swapFee,
+        //   tickSpacing: tickSpacing,
+        //   hooks: IHooks(hook)
+        // });
+        //
         uint160 startingPrice = encodeSqrtRatioX96(token0Amount, token1Amount);
-        int24 poolTick = IPoolManager(0xE03A1074c86CFeDd5C142C4F04F1a1536e203543).initialize(pool, startingPrice);
+        // int24 poolTick = IPoolManager(0xE03A1074c86CFeDd5C142C4F04F1a1536e203543).initialize(pool, startingPrice);
 
         // ------------------------------------------- NOTES ------------------------------------------- 
         // Two transactions will happen once in minting 1 Billion tokens bhttps://sepolia.etherscan.io/tx/0x3ae6774e61dd21ac7cdfed82ff03b40dd71483fba9b81d16d49b79bb5cea6275
@@ -123,7 +124,7 @@ contract CreatePool is Script {
         );
 
         bytes[] memory mintParams = new bytes[](2);
-        mintParams[0] = abi.encode(pool2, tickLower, tickUpper, liquidity, amount0Max, amount1Max, address(this), hookData); // try: address(this) -> msg.sender
+        mintParams[0] = abi.encode(pool2, tickLower, tickUpper, liquidity, amount0Max, amount1Max, msg.sender, hookData); // try: address(this) -> msg.sender
         // pool the same PoolKey defined above, in pool-creation
         // tickLower and tickUpper are the range of the position, must be a multiple of pool.tickSpacing
         // liquidity is the amount of liquidity units to add, see LiquidityAmounts for converting token amounts to liquidity units
@@ -140,91 +141,16 @@ contract CreatePool is Script {
             posm.modifyLiquidities.selector, abi.encode(actions, mintParams), deadline
         );
 
+        // 8. Approve the tokens2
+        IERC20(address(token2)).approve(address(posm), type(uint256).max);
+        //IAllowanceTransfer(address(lpRouter)).approve(address(token2), address(posm), type(uint160).max, type(uint48).max);
 
-        // 8. Approve the tokens
-
-        // approve permit2 as a spender
-        //IERC20(address(0)).approve(address(lpRouter), type(uint256).max);
-        // approve `PositionManager` as a spender
-        // address(lpRouter).approve(token2, address(posm), type(uint160).max, type(uint48).max);
-
-        // approve permit2 as a spender
-        IERC20(address(token2)).approve(address(lpRouter), type(uint256).max);
-        // approve `PositionManager` as a spender
-        //address(lpRouter).approve(token2, address(posm), type(uint160).max, type(uint48).max);
-
+        IPositionManager(posm).multicall{value: amount0Max}(params);
         console.log("WORKED TILL YOU WROTE");
 
 
         ////////////////////////////////////////////// CREATE A POOL & ADD LIQUIDITY END //////////////////////////////////////////////
         
-
-        
-        // INCREASE LIQUIDITY
-
-        // Adding liquidity
-        // PoolModifyLiquidityTest lpRouter = PoolModifyLiquidityTest(0x0C478023803a644c94c4CE1C1e7b9A087e411B0A);
-        // IPositionManager posm = IPositionManager(0x429ba70129df741B2Ca2a85BC3A2a3328e5c09b4);
-        //
-        // uint256 amount0Max = token0Amount + 1 wei;
-        // uint256 amount1Max = token1Amount + 1 wei;
-        //
-        // // approve tokens to the LP Router
-        // IERC20(address(0)).approve(address(lpRouter), type(uint256).max);
-        // IERC20(token1).approve(address(lpRouter), type(uint256).max);
-        //
-        //
-        // int24 tickLower = -600;
-        // int24 tickUpper = 600;
-        // int256 liquidity = 10_000e18;
-        //
-        //
-        // //(uint160 sqrtPriceX96,,,) = POOLMANAGER.getSlot0(pool.toId());
-        //
-        // uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
-        //     startingPrice,
-        //     TickMath.getSqrtPriceAtTick(tickLower),
-        //     TickMath.getSqrtPriceAtTick(tickUpper),
-        //     token0Amount,
-        //     token1Amount
-        // );
-        //
-        // IPositionManager(address(posm)).mint(
-        //     pool, tickLower, tickUpper, liquidity, amount0Max, amount1Max, msg.sender, block.timestamp + 60, hookData
-        // );
-        //
-        // lpRouter.modifyLiquidity(
-        //     pool,
-        //     IPoolManager.ModifyLiquidityParams({tickLower: tickLower, tickUpper: tickUpper, liquidityDelta: liquidity, salt: 0}),
-        //     new bytes(0)
-        // );
-        //
-        /*
-          Pool: ETH - DOG
-          Fee: 500 = 0.05%
-          TickSpacing: 10 // responsible for price management
-          Hooks: no hook contract
-        */
-        // PoolKey memory pool = PoolKey({
-        //   currency0: Currency.wrap(address(0)),
-        //   currency1: Currency.wrap(address(token1)),
-        //   fee: 500,
-        //   tickSpacing: 10,
-        //   hooks: IHooks(address(0))
-        // });
-        //
-        // floor(sqrt(token1/token0) * 2^96)
-
-        // 1 ETH = 1000 DOGS
-        // uint256 amount0 = 1;
-        // uint256 amount1 = 1000;
-        //
-        // uint160 startingPrice = encodeSqrtRatioX96(amount1, amount0);
-        // int24 poolTick = IPoolManager(0xE03A1074c86CFeDd5C142C4F04F1a1536e203543).initialize(pool, startingPrice);
-        //
-        // console.log("Token deployed at: ", address(token1));
-        // console.log("Pool tick is: ", poolTick);
-
         vm.stopBroadcast();
     }
 
