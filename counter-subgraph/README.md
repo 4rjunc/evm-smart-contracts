@@ -11,3 +11,8 @@ REPORT_GAS=true npx hardhat test
 npx hardhat node
 npx hardhat ignition deploy ./ignition/modules/Lock.js
 ```
+
+### to run testcases in sepolia
+```
+npx hardhat run scripts/interactSepolia.js --network sepolia
+```

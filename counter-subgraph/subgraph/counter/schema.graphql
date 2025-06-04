@@ -1,0 +1,25 @@
+type CounterDecrement @entity(immutable: true) {
+  id: Bytes!
+  newValue: BigInt! # uint256
+  caller: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type CounterIncrement @entity(immutable: true) {
+  id: Bytes!
+  newValue: BigInt! # uint256
+  caller: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type CounterReset @entity(immutable: true) {
+  id: Bytes!
+  caller: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
