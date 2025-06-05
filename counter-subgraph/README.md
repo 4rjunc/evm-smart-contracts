@@ -1,8 +1,5 @@
-# Sample Hardhat Project
+# Solidity Smart Contract Event Indexing using graph protocol
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.
-
-Try running some of the following tasks:
 
 ## Setting Up Subgraph 
 
@@ -12,7 +9,7 @@ Try running some of the following tasks:
 - Intialize a subgraph project in your contracts directory
 
 ```zsh
-󰄛 ❯ graph init counter
+❯ graph init counter
 ✔ Network · Ethereum Sepolia Testnet · sepolia · https://sepolia.etherscan.io
 ✔ Source · Smart Contract · ethereum
 ✔ Subgraph slug · counter
