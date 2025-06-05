@@ -28,6 +28,26 @@ async function main() {
     console.log("Transaction hash:", tx.hash);
     await tx.wait();
 
+    console.log("\n=== Testing Increment ===");
+    console.log("Incrementing counter...");
+    tx = await counter.increment();
+    console.log("Transaction hash:", tx.hash);
+    await tx.wait();
+
+    console.log("\n=== Testing Increment ===");
+    console.log("Incrementing counter...");
+    tx = await counter.increment();
+    console.log("Transaction hash:", tx.hash);
+    await tx.wait();
+
+
+    console.log("\n=== Testing Increment ===");
+    console.log("Incrementing counter...");
+    tx = await counter.increment();
+    console.log("Transaction hash:", tx.hash);
+    await tx.wait();
+
+
     currentValue = await counter.getCounter();
     console.log("Counter after increment:", currentValue.toString());
 
