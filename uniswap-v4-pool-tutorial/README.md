@@ -1,3 +1,6 @@
+
+ forge script script/CreatePool.s.sol:CreatePool --rpc-url $WORLD_SEPOLIA_RPC_URL --account dev --sender 0x8fE6509E8E7954B4848772e989829a958805a2B4 --broadcast -vvvv --via-ir
+
 ## Foundry
 
 **Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
