@@ -43,3 +43,6 @@
 [submodule "defi-uniswap-v4"]
 	path = defi-uniswap-v4
 	url = https://github.com/Cyfrin/defi-uniswap-v4.git
+[submodule "uniswap-v4-pool/lib/permit2"]
+	path = uniswap-v4-pool/lib/permit2
+	url = https://github.com/Uniswap/permit2
