@@ -14,6 +14,9 @@ import {IPoolInitializer_v4} from "v4-periphery/src/interfaces/IPoolInitializer_
 import {Actions} from "v4-periphery/src/libraries/Actions.sol";
 import {IAllowanceTransfer} from "permit2/src/interfaces/IAllowanceTransfer.sol";
 import {IHooks} from "v4-core/src/interfaces/IHooks.sol";
+import {LiquidityAmounts} from "v4-core/test/utils/LiquidityAmounts.sol";
+import {TickMath} from "v4-core/src/libraries/TickMath.sol";
+import {LiquidityAmounts} from "v4-core/test/utils/LiquidityAmounts.sol";
 
 contract TokenContract is ERC20, Ownable {
     using CurrencyLibrary for Currency;
@@ -68,7 +71,7 @@ contract TokenContract is ERC20, Ownable {
      */
     function receiveETH() external payable {
         require(!ethReceived, "ETH already received");
-        require(msg.value == REQUIRED_ETH, "Must send exactly 3.5 ETH");
+        require(msg.value >= REQUIRED_ETH, "Send 3.5 ETH or more");
 
         ethReceived = true;
         emit ETHReceived(msg.sender, msg.value);
@@ -93,13 +96,20 @@ contract TokenContract is ERC20, Ownable {
         Currency currency0 = ethCurrency;
         Currency currency1 = tokenCurrency;
 
+        int24 tickSpacing = 60;
+        uint160 startingPrice = 10480900742267666059490990;
+
+        uint256 token0Amount = 3.5 ether;
+        uint256 token1Amount = 200_000_000e18;
+
+        // range of the position, must be a multiple of tickSpacing
+        int24 tickLower;
+        int24 tickUpper;
+
         PoolKey memory poolKey =
             PoolKey({currency0: currency0, currency1: currency1, fee: 3000, tickSpacing: 60, hooks: IHooks(address(0))});
 
-        // CORRECTED sqrtPriceX96
-        // Price = 200M tokens / 3.5 ETH = 57,142,857.142857...
-        // sqrtPriceX96 = sqrt(57142857.142857) * 2^96
-        uint160 sqrtPriceX96 = 598593874676037306090487096320;
+        //uint160 sqrtPriceX96 = 598593874676037306090487096320;
 
         // Approve tokens
         _approve(address(this), permit2, POOL_TOKENS);
@@ -110,15 +120,22 @@ contract TokenContract is ERC20, Ownable {
 
         bytes[] memory params = new bytes[](2);
 
-        params[0] = abi.encodeWithSelector(IPoolInitializer_v4.initializePool.selector, poolKey, sqrtPriceX96);
+        params[0] = abi.encodeWithSelector(IPoolInitializer_v4.initializePool.selector, poolKey, startingPrice);
 
         bytes memory actions = abi.encodePacked(uint8(Actions.MINT_POSITION), uint8(Actions.SETTLE_PAIR));
 
-        int24 tickLower = -887220;
-        int24 tickUpper = 887220;
+        int24 currentTick = TickMath.getTickAtSqrtPrice(startingPrice);
 
-        // Keep the liquidity value
-        uint128 liquidity = 33333333333333333333333;
+        tickLower = truncateTickSpacing((currentTick - 750 * tickSpacing), tickSpacing);
+        tickUpper = truncateTickSpacing((currentTick + 750 * tickSpacing), tickSpacing);
+
+        uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
+            startingPrice,
+            TickMath.getSqrtPriceAtTick(tickLower),
+            TickMath.getSqrtPriceAtTick(tickUpper),
+            token0Amount,
+            token1Amount
+        );
 
         bytes[] memory mintParams = new bytes[](2);
 
@@ -135,9 +152,14 @@ contract TokenContract is ERC20, Ownable {
 
         bytes[] memory results = IPositionManager(positionManager).multicall{value: REQUIRED_ETH}(params);
 
-        positionTokenId = abi.decode(results[1], (uint256));
+        // positionTokenId = abi.decode(results[1], (uint256));
+        //
+        // emit PoolCreated(address(poolManager), positionTokenId);
+    }
 
-        emit PoolCreated(address(poolManager), positionTokenId);
+    function truncateTickSpacing(int24 tick, int24 tickSpacing) internal pure returns (int24) {
+        /// forge-lint: disable-next-line(divide-before-multiply)
+        return ((tick / tickSpacing) * tickSpacing);
     }
 
     /**

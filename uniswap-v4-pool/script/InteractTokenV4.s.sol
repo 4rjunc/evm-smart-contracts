@@ -42,7 +42,7 @@ contract InteractTokenV4 is Script {
         console.log("");
 
         // Send 3.5 ETH
-        token.receiveETH{value: 3.5 ether}();
+        token.receiveETH{value: 3.6 ether}();
 
         console.log(" Success! 3.5 ETH sent");
         console.log("New balance:", token.getETHBalance() / 1 ether, "ETH");
