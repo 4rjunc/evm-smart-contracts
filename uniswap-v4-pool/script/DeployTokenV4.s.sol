@@ -14,10 +14,15 @@ contract DeployTokenV4 is Script {
     //
     // Check: https://docs.uniswap.org/contracts/v4/deployments
 
-    // PLACEHOLDER ADDRESSES - REPLACE BEFORE DEPLOYING
-    address constant POOL_MANAGER = 0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408;
-    address constant POSITION_MANAGER = 0x4B2C77d209D3405F41a037Ec6c77F7F5b8e2ca80;
-    address constant PERMIT2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3; // This is often the same across networks
+    // BASE SEPOLIA
+    // address constant POOL_MANAGER = 0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408;
+    // address constant POSITION_MANAGER = 0x4B2C77d209D3405F41a037Ec6c77F7F5b8e2ca80;
+    // address constant PERMIT2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
+
+    // UNICHAIN SEPOLIA
+    address constant POOL_MANAGER = 0x00B036B58a818B1BC34d502D3fE730Db729e62AC;
+    address constant POSITION_MANAGER = 0xf969Aee60879C54bAAed9F3eD26147Db216Fd664;
+    address constant PERMIT2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 
     function run() external returns (address) {
         // Validation check

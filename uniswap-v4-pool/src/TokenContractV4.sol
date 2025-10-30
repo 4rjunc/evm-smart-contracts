@@ -24,7 +24,6 @@ contract TokenContract is ERC20, Ownable {
     // ============ Constants ============
     uint256 public constant TOTAL_SUPPLY = 1_000_000_000 * 10 ** 18; // 1 Billion tokens
     uint256 public constant REQUIRED_ETH = 3.5 ether;
-    uint256 public constant POOL_TOKENS = 200_000_000 * 10 ** 18; // 200M tokens for pool
 
     // ============ Uniswap V4 Addresses ============
     // These addresses need to be set for your network (Sepolia, mainnet, etc.)
@@ -97,7 +96,9 @@ contract TokenContract is ERC20, Ownable {
         Currency currency1 = tokenCurrency;
 
         int24 tickSpacing = 60;
-        uint160 startingPrice = 10480900742267666059490990;
+
+        // Add comment
+        uint160 startingPrice = 501082896750095888663770159906816;
 
         uint256 token0Amount = 3.5 ether;
         uint256 token1Amount = 200_000_000e18;
@@ -111,11 +112,15 @@ contract TokenContract is ERC20, Ownable {
 
         //uint160 sqrtPriceX96 = 598593874676037306090487096320;
 
+        // slippage limits
+        uint256 amount0Max = token0Amount + 1;
+        uint256 amount1Max = token1Amount + 1;
+
         // Approve tokens
-        _approve(address(this), permit2, POOL_TOKENS);
+        _approve(address(this), permit2, token1Amount);
 
         IAllowanceTransfer(permit2).approve(
-            address(this), positionManager, uint160(POOL_TOKENS), uint48(block.timestamp + 3600)
+            address(this), positionManager, uint160(amount1Max), uint48(block.timestamp + 3600)
         );
 
         bytes[] memory params = new bytes[](2);
@@ -139,8 +144,7 @@ contract TokenContract is ERC20, Ownable {
 
         bytes[] memory mintParams = new bytes[](2);
 
-        mintParams[0] =
-            abi.encode(poolKey, tickLower, tickUpper, liquidity, POOL_TOKENS, REQUIRED_ETH, address(this), "");
+        mintParams[0] = abi.encode(poolKey, tickLower, tickUpper, liquidity, amount0Max, amount1Max, msg.sender, "");
 
         mintParams[1] = abi.encode(poolKey.currency0, poolKey.currency1);
 
@@ -150,7 +154,7 @@ contract TokenContract is ERC20, Ownable {
             IPositionManager.modifyLiquidities.selector, abi.encode(actions, mintParams), deadline
         );
 
-        bytes[] memory results = IPositionManager(positionManager).multicall{value: REQUIRED_ETH}(params);
+        bytes[] memory results = IPositionManager(positionManager).multicall{value: amount0Max}(params);
 
         // positionTokenId = abi.decode(results[1], (uint256));
         //
