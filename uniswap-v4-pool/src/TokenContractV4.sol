@@ -103,10 +103,6 @@ contract TokenContract is ERC20, Ownable {
         uint256 token0Amount = 3.5 ether;
         uint256 token1Amount = 200_000_000e18;
 
-        // range of the position, must be a multiple of tickSpacing
-        int24 tickLower;
-        int24 tickUpper;
-
         PoolKey memory poolKey =
             PoolKey({currency0: currency0, currency1: currency1, fee: 3000, tickSpacing: 60, hooks: IHooks(address(0))});
 
@@ -131,8 +127,8 @@ contract TokenContract is ERC20, Ownable {
 
         int24 currentTick = TickMath.getTickAtSqrtPrice(startingPrice);
 
-        tickLower = truncateTickSpacing((currentTick - 750 * tickSpacing), tickSpacing);
-        tickUpper = truncateTickSpacing((currentTick + 750 * tickSpacing), tickSpacing);
+        int24 tickLower = truncateTickSpacing((currentTick - 750 * tickSpacing), tickSpacing);
+        int24 tickUpper = truncateTickSpacing((currentTick + 750 * tickSpacing), tickSpacing);
 
         uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
             startingPrice,
